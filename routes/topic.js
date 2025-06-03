@@ -22,15 +22,22 @@ router.post('/history', protect, async (req, res) => {
         $inc: { count: 1 },
         $set: { 
           icon,
-          updatedAt: Date.now() 
+          updatedAt: new Date()
         }
       },
       { upsert: true, new: true }
     );
 
+    // Chuyển đổi thời gian về local time
+    const result = {
+      ...topicHistory.toObject(),
+      updatedAt: topicHistory.updatedAt.toISOString(),
+      createdAt: topicHistory.createdAt.toISOString()
+    };
+
     res.status(200).json({
       success: true,
-      data: topicHistory
+      data: result
     });
   } catch (error) {
     res.status(500).json({
@@ -47,9 +54,16 @@ router.get('/history', protect, async (req, res) => {
       .sort({ count: -1, updatedAt: -1 })
       .limit(5); // Giới hạn 5 chủ đề được theo dõi nhiều nhất
 
+    // Chuyển đổi thời gian về local time cho tất cả kết quả
+    const results = topicHistory.map(item => ({
+      ...item.toObject(),
+      updatedAt: item.updatedAt.toISOString(),
+      createdAt: item.createdAt.toISOString()
+    }));
+
     res.status(200).json({
       success: true,
-      data: topicHistory
+      data: results
     });
   } catch (error) {
     res.status(500).json({

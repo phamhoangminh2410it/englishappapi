@@ -4,7 +4,12 @@ const TopicHistory = require('../models/TopicHistory');
 // Hàm xóa dữ liệu cũ
 async function cleanupOldData() {
   try {
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 giờ trước
+    // Lấy thời điểm hiện tại theo giờ địa phương
+    const now = new Date();
+    // Đặt thời gian về 00:00:00 của ngày hôm nay theo giờ địa phương
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Tính thời điểm 24 giờ trước theo giờ địa phương
+    const oneDayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000);
 
     // Xóa lịch sử tìm kiếm cũ
     const searchResult = await SearchHistory.deleteMany({
@@ -18,6 +23,7 @@ async function cleanupOldData() {
 
     console.log(`Đã xóa ${searchResult.deletedCount} bản ghi lịch sử tìm kiếm cũ`);
     console.log(`Đã xóa ${topicResult.deletedCount} bản ghi lịch sử chủ đề cũ`);
+    console.log('Thời điểm xóa (giờ địa phương):', oneDayAgo);
   } catch (error) {
     console.error('Lỗi khi xóa dữ liệu cũ:', error);
   }

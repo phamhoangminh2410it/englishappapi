@@ -20,14 +20,21 @@ router.post('/history', protect, async (req, res) => {
       { userId: req.user.id, word: word.toLowerCase() },
       { 
         $inc: { count: 1 },
-        $set: { updatedAt: Date.now() }
+        $set: { updatedAt: new Date() }
       },
       { upsert: true, new: true }
     );
 
+    // Chuyển đổi thời gian về local time
+    const result = {
+      ...searchHistory.toObject(),
+      updatedAt: searchHistory.updatedAt.toISOString(),
+      createdAt: searchHistory.createdAt.toISOString()
+    };
+
     res.status(200).json({
       success: true,
-      data: searchHistory
+      data: result
     });
   } catch (error) {
     res.status(500).json({
@@ -44,9 +51,16 @@ router.get('/history', protect, async (req, res) => {
       .sort({ count: -1, updatedAt: -1 })
       .limit(10);
 
+    // Chuyển đổi thời gian về local time cho tất cả kết quả
+    const results = searchHistory.map(item => ({
+      ...item.toObject(),
+      updatedAt: item.updatedAt.toISOString(),
+      createdAt: item.createdAt.toISOString()
+    }));
+
     res.status(200).json({
       success: true,
-      data: searchHistory
+      data: results
     });
   } catch (error) {
     res.status(500).json({
